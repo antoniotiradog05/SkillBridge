@@ -65,10 +65,24 @@ router.post('/login', async (req, res) => {
             { expiresIn: '1h' }
         );
 
-        res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+        res.json({ token, user: { id: user.id, username: user.username, email: user.email, role: user.role } });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Error en el servidor');
+    }
+});
+
+// Obtener usuario actual
+router.get('/me', require('../middlewares/authMiddleware'), async (req, res) => {
+    try {
+        const [users] = await pool.query('SELECT id, username, email, role, created_at FROM users WHERE id = ?', [req.user.id]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado.' });
+        }
+        res.json(users[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error en el servidor' });
     }
 });
 

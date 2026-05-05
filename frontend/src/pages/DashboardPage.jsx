@@ -65,8 +65,8 @@ const DashboardPage = () => {
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">Comunidad</div>
             <div className="space-y-1">
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors font-medium">
-                <Users className="w-5 h-5" /> Red de Estudiantes
+              <button onClick={() => navigate('/mentors')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors font-medium">
+                <Users className="w-5 h-5" /> Mentores 1-a-1
               </button>
               <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors font-medium">
                 <Award className="w-5 h-5" /> Leaderboard

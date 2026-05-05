@@ -9,7 +9,7 @@ const openai = new OpenAI({
 
 // POST /api/roadmaps/generate
 router.post('/generate', async (req, res) => {
-    const { skills } = req.body;
+    const { skills, experienceLevel = 'Principiante', hoursPerWeek = '10' } = req.body;
     if (!skills || skills.length === 0) {
         return res.status(400).json({ message: 'Debes proporcionar al menos una skill.' });
     }
@@ -17,7 +17,7 @@ router.post('/generate', async (req, res) => {
     const skillsList = skills.join(', ');
 
     try {
-        console.log(`🧠 Generando roadmap para las skills: ${skillsList}`);
+        console.log(`🧠 Generando roadmap para las skills: ${skillsList} | Nivel: ${experienceLevel} | Horas: ${hoursPerWeek}`);
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-3.5-turbo', // Modelo rápido y económico
@@ -28,7 +28,7 @@ router.post('/generate', async (req, res) => {
                 },
                 {
                     role: 'user',
-                    content: `Mis habilidades principales son: ${skillsList}. Quiero convertirme en un desarrollador Full Stack Junior altamente contratable. Crea un plan de estudio y práctica concreto de 3 meses. Organízalo por semanas. Incluye proyectos pequeños que pueda ir construyendo.`,
+                    content: `Mis habilidades principales que quiero aprender/mejorar son: ${skillsList}. Mi nivel de experiencia actual es: ${experienceLevel}. Puedo dedicar aproximadamente ${hoursPerWeek} horas por semana al estudio. Crea un plan de estudio y práctica concreto de 3 meses adaptado a mi nivel y tiempo disponible. Organízalo por semanas. Incluye proyectos pequeños que pueda ir construyendo.`,
                 },
             ],
             temperature: 0.7,

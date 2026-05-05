@@ -30,6 +30,8 @@ const skillsCategories = [
 
 function RoadmapGeneratorPage() {
     const [selectedSkills, setSelectedSkills] = useState([]);
+    const [experienceLevel, setExperienceLevel] = useState('Principiante');
+    const [hoursPerWeek, setHoursPerWeek] = useState('10');
     const [roadmap, setRoadmap] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingStep, setLoadingStep] = useState(0);
@@ -67,6 +69,8 @@ function RoadmapGeneratorPage() {
         try {
             const response = await axios.post('http://localhost:5000/api/roadmaps/generate', {
                 skills: selectedSkills,
+                experienceLevel,
+                hoursPerWeek
             });
             clearInterval(interval);
             setRoadmap(response.data.roadmap);
@@ -157,11 +161,39 @@ function RoadmapGeneratorPage() {
                                 ))}
                             </div>
 
-                            {error && (
-                              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-center">
-                                {error}
-                              </motion.div>
-                            )}
+                                {error && (
+                                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-center">
+                                    {error}
+                                  </motion.div>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                                  <div className="glass-card p-6">
+                                    <label className="block text-sm font-semibold text-slate-300 mb-3">Nivel de Experiencia Actual</label>
+                                    <select 
+                                      value={experienceLevel} 
+                                      onChange={(e) => setExperienceLevel(e.target.value)}
+                                      className="w-full bg-slate-900/50 border border-slate-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 appearance-none"
+                                    >
+                                      <option value="Principiante">Principiante (Desde Cero)</option>
+                                      <option value="Intermedio">Intermedio (Tengo bases sólidas)</option>
+                                      <option value="Avanzado">Avanzado (Busco especialización)</option>
+                                    </select>
+                                  </div>
+                                  <div className="glass-card p-6">
+                                    <label className="block text-sm font-semibold text-slate-300 mb-3">Horas Disponibles por Semana</label>
+                                    <select 
+                                      value={hoursPerWeek} 
+                                      onChange={(e) => setHoursPerWeek(e.target.value)}
+                                      className="w-full bg-slate-900/50 border border-slate-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 appearance-none"
+                                    >
+                                      <option value="5">Aprox. 5 horas (1h/día)</option>
+                                      <option value="10">Aprox. 10 horas (2h/día)</option>
+                                      <option value="20">Aprox. 20 horas (Part-time)</option>
+                                      <option value="40">Aprox. 40 horas (Full-time)</option>
+                                    </select>
+                                  </div>
+                                </div>
 
                             <div className="flex justify-center pt-8 border-t border-slate-800/50">
                                 <button
