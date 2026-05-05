@@ -71,6 +71,10 @@ function RoadmapGeneratorPage() {
                 skills: selectedSkills,
                 experienceLevel,
                 hoursPerWeek
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
             });
             clearInterval(interval);
             setRoadmap(response.data.roadmap);
@@ -253,7 +257,7 @@ function RoadmapGeneratorPage() {
                                     Compartir
                                 </button>
                                 <button onClick={() => navigate('/dashboard')} className="btn-primary flex items-center gap-2 shadow-lg shadow-primary-500/30">
-                                    <CheckCircle2 className="w-5 h-5" /> Guardar en mi Panel
+                                    <CheckCircle2 className="w-5 h-5" /> Ir a mi Panel (Guardado)
                                 </button>
                             </div>
                         </motion.div>

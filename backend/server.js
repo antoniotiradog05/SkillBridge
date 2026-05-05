@@ -32,10 +32,12 @@ const skills = [
 
 const roadmapRoutes = require('./routes/roadmap');
 const authRoutes = require('./routes/auth');
+const mentorRoutes = require('./routes/mentors');
 
 // Routes
 app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/mentors', mentorRoutes);
 
 app.get('/api/skills', (req, res) => {
   res.json(skills);

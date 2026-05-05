@@ -1,6 +1,8 @@
 const express = require('express');
 const OpenAI = require('openai');
 const router = express.Router();
+const pool = require('../db');
+const authMiddleware = require('../middlewares/authMiddleware');
 
 // Configurar OpenAI con la clave del archivo .env
 const openai = new OpenAI({
@@ -8,7 +10,7 @@ const openai = new OpenAI({
 });
 
 // POST /api/roadmaps/generate
-router.post('/generate', async (req, res) => {
+router.post('/generate', authMiddleware, async (req, res) => {
     const { skills, experienceLevel = 'Principiante', hoursPerWeek = '10' } = req.body;
     if (!skills || skills.length === 0) {
         return res.status(400).json({ message: 'Debes proporcionar al menos una skill.' });
@@ -38,9 +40,14 @@ router.post('/generate', async (req, res) => {
         const roadmapText = completion.choices[0].message.content;
         console.log('✅ Roadmap generado con éxito.');
 
-        // Para un proyecto real, aquí guardarías el roadmap en una tabla 'roadmaps'
-        // vinculada al usuario. Por ahora, lo devolvemos directamente.
-        res.json({ roadmap: roadmapText });
+        // Guardar el roadmap en la base de datos
+        const topic = `Roadmap: ${skillsList}`;
+        await pool.query(
+            'INSERT INTO roadmaps (user_id, topic, content, status) VALUES (?, ?, ?, ?)',
+            [req.user.id, topic, JSON.stringify({ markdown: roadmapText }), 'active']
+        );
+
+        res.json({ roadmap: roadmapText, topic });
     } catch (error) {
         console.error('❌ Error al llamar a OpenAI:', error.message);
         
@@ -64,8 +71,27 @@ router.post('/generate', async (req, res) => {
 > 💡 **Nota del sistema:** Este es un roadmap generado como respaldo porque tu clave de OpenAI ha excedido su cuota (Error 429). ¡Pero aún así es un excelente punto de partida!
         `;
         
-        // En lugar de devolver un error 500, devolvemos el mock con status 200 para que el Frontend funcione
-        return res.json({ roadmap: mockRoadmap });
+        // Devolver el mock
+        const topic = `Roadmap: ${skillsList}`;
+        
+        // Guardar el mock también
+        await pool.query(
+            'INSERT INTO roadmaps (user_id, topic, content, status) VALUES (?, ?, ?, ?)',
+            [req.user.id, topic, JSON.stringify({ markdown: mockRoadmap }), 'active']
+        );
+        
+        return res.json({ roadmap: mockRoadmap, topic });
+    }
+});
+
+// GET /api/roadmaps/my-roadmaps
+router.get('/my-roadmaps', authMiddleware, async (req, res) => {
+    try {
+        const [roadmaps] = await pool.query('SELECT * FROM roadmaps WHERE user_id = ? ORDER BY created_at DESC', [req.user.id]);
+        res.json(roadmaps);
+    } catch (error) {
+        console.error('❌ Error al obtener roadmaps:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
 

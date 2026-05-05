@@ -1,19 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { AuthContext } from '../context/AuthContext';
+import axios from 'axios';
 import { 
   LayoutDashboard, BookOpen, MessageSquare, Target, Settings, LogOut, 
   BrainCircuit, Play, Pause, Award, Calendar, Bell, ChevronRight, 
-  Flame, TrendingUp, Clock, BookMarked, Users
+  Flame, TrendingUp, Clock, BookMarked, Users, CheckCircle2, Star
 } from 'lucide-react';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
+  const [roadmaps, setRoadmaps] = useState([]);
+  const [loadingRoadmaps, setLoadingRoadmaps] = useState(true);
 
-  const userProgress = [
-    { id: 1, skill: 'Desarrollo Web Full Stack', progress: 65, status: 'En Progreso', icon: BookOpen, color: 'text-blue-400', bg: 'bg-blue-500/10', nextModule: 'Autenticación con JWT' },
-    { id: 2, skill: 'Diseño UI/UX Avanzado', progress: 30, status: 'Pausado', icon: Target, color: 'text-purple-400', bg: 'bg-purple-500/10', nextModule: 'Sistemas de Diseño' },
-  ];
+  useEffect(() => {
+    const fetchRoadmaps = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/roadmaps/my-roadmaps', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setRoadmaps(response.data);
+      } catch (error) {
+        console.error('Error fetching roadmaps:', error);
+      } finally {
+        setLoadingRoadmaps(false);
+      }
+    };
+    fetchRoadmaps();
+  }, []);
 
   const upcomingEvents = [
     { id: 1, title: 'Revisión de Código: Proyecto E-commerce', mentor: 'Sarah López', time: 'Hoy, 18:00', type: 'Mentoría 1-a-1' },
@@ -21,17 +37,8 @@ const DashboardPage = () => {
   ];
 
   const recentActivity = [
-    { id: 1, action: 'Completó el módulo "Hooks Avanzados"', time: 'Hace 2 horas', icon: CheckCircle2, color: 'text-green-400' },
-    { id: 2, action: 'Entregó el proyecto "Dashboard Admin"', time: 'Ayer', icon: Target, color: 'text-blue-400' },
-    { id: 3, action: 'Recibió feedback excelente de Sarah', time: 'Hace 2 días', icon: MessageSquare, color: 'text-purple-400' },
+    { id: 1, action: 'Se unió a SkillBridge', time: 'Recientemente', icon: CheckCircle2, color: 'text-green-400' },
   ];
-
-  // Using a mock component for missing imports
-  const CheckCircle2 = ({ className }) => (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
 
   return (
     <div className="min-h-screen flex bg-slate-950 font-sans text-slate-300">
@@ -79,7 +86,7 @@ const DashboardPage = () => {
           <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors font-medium">
             <Settings className="w-5 h-5" /> Configuración
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors font-medium mt-1">
+          <button onClick={() => { logout(); navigate('/'); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors font-medium mt-1">
             <LogOut className="w-5 h-5" /> Cerrar Sesión
           </button>
         </div>
@@ -99,12 +106,12 @@ const DashboardPage = () => {
             </button>
             <div className="flex items-center gap-3 border-l border-slate-800 pl-6 cursor-pointer hover:opacity-80 transition-opacity">
               <div className="text-right hidden sm:block">
-                <div className="text-sm font-bold text-white">Alex Explorer</div>
-                <div className="text-xs text-primary-400 font-medium">Estudiante Pro</div>
+                <div className="text-sm font-bold text-white">{user?.username || 'Estudiante'}</div>
+                <div className="text-xs text-primary-400 font-medium capitalize">{user?.role || 'Estudiante Pro'}</div>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 p-0.5 shadow-lg shadow-orange-500/20">
-                <div className="w-full h-full bg-slate-900 rounded-full overflow-hidden">
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Avatar" className="w-full h-full object-cover" />
+                <div className="w-full h-full bg-slate-900 rounded-full overflow-hidden flex items-center justify-center">
+                  <span className="font-bold text-white uppercase">{user?.username?.charAt(0) || 'U'}</span>
                 </div>
               </div>
             </div>
@@ -166,8 +173,8 @@ const DashboardPage = () => {
                     <h2 className="text-3xl font-bold text-white mb-2 leading-tight">Módulo: Autenticación Avanzada con JWT</h2>
                     <p className="text-slate-400 mb-8 text-lg">Estás en el 65% de tu roadmap de Desarrollo Web Full Stack. Completa este módulo para desbloquear el proyecto final.</p>
                     <div className="flex flex-wrap gap-4">
-                      <button className="btn-primary flex items-center gap-2 px-8">
-                        <Play className="w-4 h-4 fill-current" /> Continuar Lección
+                      <button onClick={() => navigate('/roadmap-generator')} className="btn-primary flex items-center gap-2 px-8">
+                        <Play className="w-4 h-4 fill-current" /> Generar Nuevo Roadmap
                       </button>
                       <button className="btn-secondary flex items-center gap-2 border-slate-700 bg-slate-800/80">
                         <BookMarked className="w-4 h-4" /> Ver Apuntes
@@ -183,45 +190,50 @@ const DashboardPage = () => {
                     <button className="text-sm text-primary-400 hover:text-primary-300 font-medium">Ver historial completo →</button>
                   </div>
                   <div className="space-y-4">
-                    {userProgress.map((path, i) => (
-                      <motion.div 
-                        key={path.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="glass-card p-6 group hover:bg-slate-800/80 transition-colors"
-                      >
-                        <div className="flex flex-col md:flex-row gap-6">
-                          <div className={`w-16 h-16 shrink-0 rounded-2xl flex items-center justify-center ${path.bg} ${path.color}`}>
-                            <path.icon className="w-8 h-8" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
-                              <div>
-                                <h4 className="text-xl font-bold text-white mb-1 group-hover:text-primary-400 transition-colors">{path.skill}</h4>
-                                <span className="text-sm text-slate-400 flex items-center gap-1">
-                                  {path.status === 'En Progreso' ? <Play className="w-3 h-3 text-green-400 fill-current" /> : <Pause className="w-3 h-3 text-amber-400 fill-current" />}
-                                  {path.status} • Siguiente: {path.nextModule}
-                                </span>
+                    {loadingRoadmaps ? (
+                      <div className="text-center py-8 text-slate-500">Cargando tus roadmaps...</div>
+                    ) : roadmaps.length === 0 ? (
+                      <div className="text-center py-8 text-slate-500 border border-dashed border-slate-700 rounded-xl">
+                        Aún no tienes ningún Roadmap. ¡Genera uno para empezar!
+                      </div>
+                    ) : (
+                      roadmaps.map((roadmap, i) => (
+                        <motion.div 
+                          key={roadmap.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          className="glass-card p-6 group hover:bg-slate-800/80 transition-colors"
+                        >
+                          <div className="flex flex-col md:flex-row gap-6">
+                            <div className="w-16 h-16 shrink-0 rounded-2xl flex items-center justify-center bg-primary-500/10 text-primary-400">
+                              <BookOpen className="w-8 h-8" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
+                                <div>
+                                  <h4 className="text-xl font-bold text-white mb-1 group-hover:text-primary-400 transition-colors">{roadmap.topic}</h4>
+                                  <span className="text-sm text-slate-400 flex items-center gap-1">
+                                    <Play className="w-3 h-3 text-green-400 fill-current" />
+                                    {roadmap.status} • Creado el: {new Date(roadmap.created_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-3xl font-extrabold text-white">0<span className="text-lg text-slate-500">%</span></span>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <span className="text-3xl font-extrabold text-white">{path.progress}<span className="text-lg text-slate-500">%</span></span>
+                              <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden mt-2 border border-slate-800">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: '0%' }}
+                                  className="h-full bg-gradient-to-r from-primary-500 to-purple-500 rounded-full relative"
+                                ></motion.div>
                               </div>
                             </div>
-                            <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden mt-2 border border-slate-800">
-                              <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${path.progress}%` }}
-                                transition={{ duration: 1.5, delay: 0.2, type: 'spring' }}
-                                className="h-full bg-gradient-to-r from-primary-500 to-purple-500 rounded-full relative"
-                              >
-                                <div className="absolute top-0 right-0 bottom-0 left-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4yIi8+PC9zdmc+')] opacity-30"></div>
-                              </motion.div>
-                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      ))
+                    )}
                   </div>
                 </div>
                 {/* Recommended Courses Section */}

@@ -3,20 +3,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { BrainCircuit, Search, Star, Building2, MapPin, Calendar, Clock, X, CheckCircle } from 'lucide-react';
 
-const MOCK_MENTORS = [
-  { id: 1, name: 'Sarah López', role: 'Senior Frontend Engineer', company: 'Google', location: 'Remoto / ES', rate: 45, rating: 4.9, reviews: 124, skills: ['React', 'TypeScript', 'Performance'], image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop' },
-  { id: 2, name: 'David Kim', role: 'Staff Software Engineer', company: 'Meta', location: 'Remoto / US', rate: 60, rating: 5.0, reviews: 89, skills: ['System Design', 'Node.js', 'GraphQL'], image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop' },
-  { id: 3, name: 'Elena García', role: 'UX/UI Lead', company: 'Amazon', location: 'Remoto / ES', rate: 40, rating: 4.8, reviews: 156, skills: ['Figma', 'User Research', 'Design Systems'], image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&auto=format&fit=crop' },
-  { id: 4, name: 'Alex Rivera', role: 'Full Stack Developer', company: 'Spotify', location: 'Remoto / MX', rate: 35, rating: 4.7, reviews: 67, skills: ['Vue.js', 'Python', 'Django'], image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop' },
-];
-
 const MentorsPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMentor, setSelectedMentor] = useState(null);
-  const [bookingStatus, setBookingStatus] = useState('idle'); // idle, confirming, success
+  const [bookingStatus, setBookingStatus] = useState('idle');
+  const [mentors, setMentors] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredMentors = MOCK_MENTORS.filter(mentor => 
+  useEffect(() => {
+    const fetchMentors = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/mentors', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        const data = await response.json();
+        setMentors(data);
+      } catch (error) {
+        console.error('Error fetching mentors:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMentors();
+  }, []);
+
+  const filteredMentors = mentors.filter(mentor => 
     mentor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mentor.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -70,8 +84,13 @@ const MentorsPage = () => {
           </div>
 
           {/* Mentors Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-            {filteredMentors.map(mentor => (
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+              {filteredMentors.map(mentor => (
               <motion.div 
                 key={mentor.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -122,6 +141,7 @@ const MentorsPage = () => {
               </motion.div>
             ))}
           </div>
+          )}
 
         </div>
       </main>
